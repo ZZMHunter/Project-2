@@ -1,16 +1,14 @@
-/*
-    Author: Zhao Zhang
-    Course: CSCI-135
-    Instructor: Tong Yi
-    Assignment: Project 2
-
-    Find the maximum monthly total across all categories; draw a chart for a selected category
+/* 
+    Author: 
+    Zhao Zhang Course: CSCI-135 
+    Instructor: Tong Yi 
+    Assignment: Project 2 
+    Find the maximum monthly total across all categories;
+    draw a chart for a selected category 
 */
-
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <climits>
 #include <iomanip>
 
 int month(std::string input) {
@@ -18,27 +16,20 @@ int month(std::string input) {
     return std::stoi(input.substr(0, monthSlash));
 }
 
-int main() {
-    std::string file, junk, description, category, date, amountStr;
-    std::string categories[20];
-    std::string monthArr[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    double arr[12][20] = {0};
-    double amountDouble = 0, maxMonthly = 0;
-    int currMonth = 0, categoryCount = 0, chosen;
-    std::cout << "Enter file name: ";
-    std::cin >> file;
+void readData(std::string file, std::string categories[], double arr[12][20], int &categoryCount) {
     std::ifstream data(file);
     if (data.fail()) {
         std::cerr << "Error: cannot open file" << std::endl;
         exit(1);
     }
+    std::string junk, description, category, date, amountStr;
     getline(data, junk);
     while (getline(data, date, ',')) {
-        currMonth = month(date) - 1;
+        int currMonth = month(date) - 1;
         getline(data, description, ',');
         getline(data, category, ',');
         getline(data, amountStr);
-        amountDouble = stod(amountStr);
+        double amountDouble = stod(amountStr);
         bool found = false;
         for (int i = 0; i < categoryCount; i++) {
             if (categories[i] == category) {
@@ -55,7 +46,7 @@ int main() {
                     break;
                 }
             }
-           for (int col = categoryCount; col > insertPos; col--) {
+            for (int col = categoryCount; col > insertPos; col--) {
                 categories[col] = categories[col - 1];
                 for (int m = 0; m < 12; m++) {
                     arr[m][col] = arr[m][col - 1];
@@ -69,34 +60,63 @@ int main() {
             categoryCount++;
         }
     }
-    maxMonthly = 0;
-    for (int i = 0; i < 12; i++) {
-        for (int j = 0; j < categoryCount; j++) {
-            if (arr[i][j] > maxMonthly) {
-                maxMonthly = arr[i][j];
-            }
-        }
-    }
-    std::cout << "\nSelect one of the following categories:\n";
-    for (int i = 0; i < categoryCount; i++) {
-        std::cout << i << ". " << categories[i] << std::endl;
-    }
-    std::cout << "Choose a number between [0, " << categoryCount - 1 << "]: ";
-    std::cin >> chosen;
-    if (chosen < 0 || chosen >= categoryCount) {
-        std::cerr << "Invalid choice." << std::endl;
-        data.close();
-        return 1;
-    }
-    std::cout << "\n" << categories[chosen] << ":\n";
-    for (int i = 0; i < 12; i++) {
-        std::cout << monthArr[i] << "   " << " " << arr[i][chosen] << "   ";
-        int barLength = (maxMonthly > 0) ? (int)(arr[i][chosen] / maxMonthly * 40) : 0;
-        for (int j = 0; j < barLength; j++) {
-            std::cout << "*";
-        }
-        std::cout << std::endl;
-    }
     data.close();
+}
+
+void printReport(double arr[12][20], std::string categories[], std::string monthArr[], int categoryCount) {
+    double categoryTotals[20] = {0};
+    double monthTotals[12] = {0};
+    double overallTotal = 0;
+
+    for (int j = 0; j < categoryCount; j++) {
+        for (int i = 0; i < 12; i++) {
+            categoryTotals[j] += arr[i][j];
+            monthTotals[i] += arr[i][j];
+            overallTotal += arr[i][j];
+        }
+    }
+
+    std::cout << std::fixed << std::setprecision(2);
+    std::cout << "\nMON";
+    for (int j = 0; j < categoryCount; j++) {
+        std::cout << std::setw(15) << categories[j];
+    }
+    std::cout << std::setw(15) << "TOTAL" << "\n";
+
+    for (int i = 0; i < 12; i++) {
+        std::cout << std::left << std::setw(5) << monthArr[i];
+        for (int j = 0; j < categoryCount; j++) {
+            std::cout << std::right << std::setw(15) << arr[i][j];
+        }
+        std::cout << std::setw(15) << monthTotals[i] << "\n";
+    }
+
+    std::cout << std::left << std::setw(5) << "";
+    for (int j = 0; j < categoryCount; j++) {
+        std::cout << std::right << std::setw(15) << categoryTotals[j];
+    }
+    std::cout << std::setw(15) << overallTotal << "\n";
+
+    std::cout << std::left << std::setw(5) << "";
+    for (int j = 0; j < categoryCount; j++) {
+        double percent = (overallTotal > 0) ? (categoryTotals[j] / overallTotal * 100) : 0;
+        std::cout << std::right << std::setw(15) << percent << "%";
+    }
+    std::cout << "\n";
+}
+
+int main() {
+    std::string file;
+    std::string categories[20];
+    std::string monthArr[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+    double arr[12][20] = {0};
+    int categoryCount = 0;
+
+    std::cout << "Enter a csv file name with date, category, cost: ";
+    std::cin >> file;
+
+    readData(file, categories, arr, categoryCount);
+    printReport(arr, categories, monthArr, categoryCount);
+
     return 0;
 }
