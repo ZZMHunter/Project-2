@@ -4,7 +4,8 @@
     Instructor: Tong Yi 
     Assignment: Project 2 
     Find the maximum monthly total across all categories;
-    draw a chart for a selected category 
+    Draw a chart for a selected category;
+    Write into a csv file.
 */
 #include <iostream>
 #include <fstream>
@@ -105,6 +106,59 @@ void printReport(double arr[12][20], std::string categories[], std::string month
     std::cout << "\n";
 }
 
+void createOutput(double arr[12][20], std::string categories[], std::string monthArr[], int categoryCount){
+    double categoryTotals[20] = {0};
+    double monthTotals[12] = {0};
+    double overallTotal = 0;
+
+    std::cout << "Enter output file name: ";
+    std::string file;
+    std::cin >> file;
+
+    std::ofstream fout(file);
+    if(fout.fail()){
+        std::cerr << "Failed to open file" << std::endl;
+        exit(0);    
+    }
+
+    for (int j = 0; j < categoryCount; j++) {
+        for (int i = 0; i < 12; i++) {
+            categoryTotals[j] += arr[i][j];
+            monthTotals[i] += arr[i][j];
+            overallTotal += arr[i][j];
+        }
+    }
+
+    std::cout << std::fixed << std::setprecision(2);
+    fout << "MON,";
+    for (int j = 0; j < categoryCount; j++) {
+        fout << categories[j] << ",";
+    }
+    fout << "TOTAL" << "\n";
+
+    for (int i = 0; i < 12; i++) {
+        fout << monthArr[i]<< ",";
+        for (int j = 0; j < categoryCount; j++) {
+            fout << arr[i][j] << ",";
+        }
+        fout << monthTotals[i] << "\n";
+    }
+
+    fout << ",";
+    for (int j = 0; j < categoryCount; j++) {
+        fout << categoryTotals[j]<<",";
+    }
+    fout << overallTotal << "\n";
+
+    fout << ",";
+    for (int j = 0; j < categoryCount; j++) {
+        double percent = (overallTotal > 0) ? (categoryTotals[j] / overallTotal * 100) : 0;
+        fout << std::setprecision(4) << percent << "%";
+    }
+    fout << ",";
+
+}
+
 int main() {
     std::string file;
     std::string categories[20];
@@ -117,6 +171,7 @@ int main() {
 
     readData(file, categories, arr, categoryCount);
     printReport(arr, categories, monthArr, categoryCount);
+    createOutput(arr, categories, monthArr, categoryCount);
 
     return 0;
 }
