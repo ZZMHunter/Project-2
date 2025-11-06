@@ -153,7 +153,7 @@ void createOutput(double arr[12][20], std::string categories[], std::string mont
     fout << ",";
     for (int j = 0; j < categoryCount; j++) {
         double percent = (overallTotal > 0) ? (categoryTotals[j] / overallTotal * 100) : 0;
-        fout << std::setprecision(4) << percent << "%,";
+        fout << std::fixed << std::setprecision(4) << percent << "%,";
     }
     fout << ",";
 
